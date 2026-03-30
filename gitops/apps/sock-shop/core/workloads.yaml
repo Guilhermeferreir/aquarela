@@ -1,0 +1,662 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: carts
+  labels:
+    app.kubernetes.io/name: carts
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: carts
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: carts
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: carts
+          image: weaveworksdemos/carts:0.4.8
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: JAVA_OPTS
+              value: -Xms64m -Xmx128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom -Dspring.zipkin.enabled=false
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits:
+              cpu: 300m
+              memory: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: carts
+  labels:
+    app.kubernetes.io/name: carts
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: carts
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: carts-db
+  labels:
+    app.kubernetes.io/name: carts-db
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: carts-db
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: carts-db
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: carts-db
+          image: mongo:7.0
+          ports:
+            - name: mongo
+              containerPort: 27017
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: carts-db
+  labels:
+    app.kubernetes.io/name: carts-db
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: carts-db
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: mongo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogue
+  labels:
+    app.kubernetes.io/name: catalogue
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: catalogue
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: catalogue
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: catalogue
+          image: weaveworksdemos/catalogue:0.3.5
+          args:
+            - -port=80
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 200m
+              memory: 200Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalogue
+  labels:
+    app.kubernetes.io/name: catalogue
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: catalogue
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogue-db
+  labels:
+    app.kubernetes.io/name: catalogue-db
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: catalogue-db
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: catalogue-db
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: catalogue-db
+          image: weaveworksdemos/catalogue-db:0.3.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: fake_password
+            - name: MYSQL_DATABASE
+              value: socksdb
+          ports:
+            - name: mysql
+              containerPort: 3306
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalogue-db
+  labels:
+    app.kubernetes.io/name: catalogue-db
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: catalogue-db
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders
+  labels:
+    app.kubernetes.io/name: orders
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: orders
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: orders
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: orders
+          image: weaveworksdemos/orders:0.4.7
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: JAVA_OPTS
+              value: -Xms64m -Xmx128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom -Dspring.zipkin.enabled=false
+          resources:
+            requests:
+              cpu: 100m
+              memory: 300Mi
+            limits:
+              cpu: 500m
+              memory: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders
+  labels:
+    app.kubernetes.io/name: orders
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: orders
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-db
+  labels:
+    app.kubernetes.io/name: orders-db
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: orders-db
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: orders-db
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: orders-db
+          image: mongo:7.0
+          ports:
+            - name: mongo
+              containerPort: 27017
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-db
+  labels:
+    app.kubernetes.io/name: orders-db
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: orders-db
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: mongo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  labels:
+    app.kubernetes.io/name: payment
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: payment
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: payment
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: payment
+          image: weaveworksdemos/payment:0.4.3
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 200m
+              memory: 200Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment
+  labels:
+    app.kubernetes.io/name: payment
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: payment
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: queue-master
+  labels:
+    app.kubernetes.io/name: queue-master
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: queue-master
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: queue-master
+        app.kubernetes.io/component: worker
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: queue-master
+          image: weaveworksdemos/queue-master:0.3.1
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: JAVA_OPTS
+              value: -Xms64m -Xmx128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom -Dspring.zipkin.enabled=false
+          resources:
+            requests:
+              cpu: 100m
+              memory: 300Mi
+            limits:
+              cpu: 300m
+              memory: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: queue-master
+  labels:
+    app.kubernetes.io/name: queue-master
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: queue-master
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/component: messaging
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rabbitmq
+        app.kubernetes.io/component: messaging
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3.13-management
+          ports:
+            - name: amqp
+              containerPort: 5672
+            - name: management
+              containerPort: 15672
+        - name: rabbitmq-exporter
+          image: kbudde/rabbitmq-exporter:v1.0.0-RC19.1
+          ports:
+            - name: metrics
+              containerPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: rabbitmq
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: amqp
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: session-db
+  labels:
+    app.kubernetes.io/name: session-db
+    app.kubernetes.io/component: cache
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: session-db
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: session-db
+        app.kubernetes.io/component: cache
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: session-db
+          image: redis:7.2-alpine
+          ports:
+            - name: redis
+              containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: session-db
+  labels:
+    app.kubernetes.io/name: session-db
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: session-db
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shipping
+  labels:
+    app.kubernetes.io/name: shipping
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: shipping
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: shipping
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: shipping
+          image: weaveworksdemos/shipping:0.4.8
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: JAVA_OPTS
+              value: -Xms64m -Xmx128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom -Dspring.zipkin.enabled=false
+          resources:
+            requests:
+              cpu: 100m
+              memory: 300Mi
+            limits:
+              cpu: 300m
+              memory: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shipping
+  labels:
+    app.kubernetes.io/name: shipping
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: shipping
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+  labels:
+    app.kubernetes.io/name: user
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: user
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: user
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: user
+          image: weaveworksdemos/user:0.4.7
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: mongo
+              value: user-db:27017
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 300m
+              memory: 200Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user
+  labels:
+    app.kubernetes.io/name: user
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: user
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-db
+  labels:
+    app.kubernetes.io/name: user-db
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: user-db
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: user-db
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: sock-shop
+    spec:
+      containers:
+        - name: user-db
+          image: weaveworksdemos/user-db:0.3.0
+          ports:
+            - name: mongo
+              containerPort: 27017
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-db
+  labels:
+    app.kubernetes.io/name: user-db
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  selector:
+    app.kubernetes.io/name: user-db
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: mongo

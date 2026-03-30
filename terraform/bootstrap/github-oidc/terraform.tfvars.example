@@ -1,0 +1,11 @@
+﻿region       = "us-east-1"
+github_owner = "CHANGE_ME"
+github_repo  = "aquarela"
+
+additional_subjects = [
+  "repo:CHANGE_ME/aquarela:pull_request",
+]
+
+tags = {
+  Environment = "bootstrap"
+}

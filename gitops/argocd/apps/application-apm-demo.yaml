@@ -1,0 +1,22 @@
+﻿apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apm-demo
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: '50'
+spec:
+  project: aquarela-apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apm-demo
+  source:
+    repoURL: https://github.com/CHANGE-ME/aquarela.git
+    targetRevision: HEAD
+    path: gitops/apps/apm-demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

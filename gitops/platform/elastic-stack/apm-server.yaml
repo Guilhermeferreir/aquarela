@@ -1,0 +1,30 @@
+﻿apiVersion: apm.k8s.elastic.co/v1
+kind: ApmServer
+metadata:
+  name: apm-server
+spec:
+  version: 9.1.0
+  count: 1
+  elasticsearchRef:
+    name: elasticsearch
+  kibanaRef:
+    name: kibana
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  config:
+    apm-server.auth.anonymous.enabled: true
+    apm-server.rum.enabled: true
+    apm-server.host: 0.0.0.0:8200
+  podTemplate:
+    spec:
+      containers:
+        - name: apm-server
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

@@ -1,0 +1,15 @@
+﻿{
+  "name": "aquarela-apm-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Node.js demo service instrumented with Elastic APM and Prometheus metrics.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "elastic-apm-node": "^4.7.3",
+    "express": "^4.21.2",
+    "prom-client": "^15.1.3"
+  }
+}

@@ -1,0 +1,69 @@
+﻿apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sock-shop
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  namespaceSelector:
+    matchNames:
+      - sock-shop
+  selector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - carts
+          - catalogue
+          - orders
+          - payment
+          - queue-master
+          - shipping
+          - user
+          - front-end
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sock-shop-rabbitmq
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: sock-shop
+spec:
+  namespaceSelector:
+    matchNames:
+      - sock-shop
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: apm-demo
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: apm-demo
+spec:
+  namespaceSelector:
+    matchNames:
+      - apm-demo
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: apm-demo
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s

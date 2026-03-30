@@ -1,0 +1,38 @@
+﻿apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: aquarela-observability-rules
+  namespace: monitoring
+spec:
+  groups:
+    - name: sock-shop.rules
+      rules:
+        - alert: SockShopFrontendDown
+          expr: max by (service) (up{namespace="sock-shop", service="front-end"}) == 0
+          for: 2m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: Sock Shop frontend indisponivel.
+            description: O service front-end do Sock Shop nao esta respondendo ao Prometheus ha pelo menos 2 minutos.
+        - alert: SockShopContainerRestartsHigh
+          expr: increase(kube_pod_container_status_restarts_total{namespace="sock-shop"}[15m]) > 3
+          for: 10m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: Reinicios excessivos no namespace sock-shop.
+            description: Pelo menos um container do Sock Shop reiniciou mais de 3 vezes nos ultimos 15 minutos.
+    - name: apm-demo.rules
+      rules:
+        - alert: ApmDemoUnavailable
+          expr: max by (service) (up{namespace="apm-demo", service="apm-demo"}) == 0
+          for: 2m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: Aplicacao apm-demo indisponivel.
+            description: A aplicacao Node.js instrumentada com Elastic APM nao esta sendo coletada pelo Prometheus.

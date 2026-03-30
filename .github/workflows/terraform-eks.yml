@@ -1,0 +1,126 @@
+﻿name: terraform-eks
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/terraform-eks.yml'
+      - 'terraform/**'
+      - 'gitops/**'
+      - 'scripts/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/terraform-eks.yml'
+      - 'terraform/**'
+      - 'gitops/**'
+      - 'scripts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  TF_IN_AUTOMATION: true
+  TF_WORKING_DIR: terraform/environments/prod
+
+jobs:
+  terraform:
+    name: Terraform Plan and Apply
+    runs-on: ubuntu-latest
+    outputs:
+      cluster_name: ${{ steps.export_outputs.outputs.cluster_name }}
+      region: ${{ steps.export_outputs.outputs.region }}
+      desafio_aquarela_user_arn: ${{ steps.export_outputs.outputs.desafio_aquarela_user_arn }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform format check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=${{ vars.TF_STATE_KEY }}" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ vars.TF_STATE_DYNAMODB_TABLE }}"
+
+      - name: Terraform validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate
+
+      - name: Terraform plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Terraform apply
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Export Terraform outputs
+        id: export_outputs
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          echo "cluster_name=$(terraform output -raw cluster_name)" >> "$GITHUB_OUTPUT"
+          echo "region=$(terraform output -raw region)" >> "$GITHUB_OUTPUT"
+          echo "desafio_aquarela_user_arn=$(terraform output -raw desafio_aquarela_user_arn)" >> "$GITHUB_OUTPUT"
+
+  bootstrap-argocd:
+    name: Bootstrap Argo CD
+    runs-on: ubuntu-latest
+    needs:
+      - terraform
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.34.0
+
+      - name: Make bootstrap scripts executable
+        run: chmod +x scripts/*.sh
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name "${{ needs.terraform.outputs.cluster_name }}" \
+            --region "${{ needs.terraform.outputs.region }}"
+
+      - name: Render aws-auth configmap
+        run: |
+          ./scripts/render-aws-auth.sh \
+            terraform/environments/prod/templates/aws-auth-configmap.yaml.tpl \
+            "${{ needs.terraform.outputs.desafio_aquarela_user_arn }}" \
+            /tmp/aws-auth-configmap.yaml
+
+      - name: Apply aws-auth configmap
+        run: kubectl apply -f /tmp/aws-auth-configmap.yaml
+
+      - name: Install Argo CD and register root application
+        env:
+          REPO_URL: ${{ vars.ARGOCD_REPO_URL }}
+        run: ./scripts/bootstrap-argocd.sh
