@@ -38,4 +38,20 @@ locals {
   ) : module.vpc[0].intra_subnets
 
   discovery_subnet_ids = distinct(concat(local.public_subnet_ids, local.private_subnet_ids))
+
+  cluster_admin_access_entries = {
+    for idx, arn in var.cluster_admin_principal_arns : "admin_${idx}" => {
+      principal_arn = arn
+      type          = "STANDARD"
+
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
 }

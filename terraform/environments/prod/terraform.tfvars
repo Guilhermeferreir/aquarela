@@ -33,6 +33,11 @@ node_group_desired_size = 4
 node_group_min_size     = 2
 node_group_max_size     = 6
 
+cluster_admin_principal_arns = [
+  "arn:aws:iam::135808919375:user/guilherme-ferreira",
+  "arn:aws:iam::135808919375:role/aquarela-github-actions",
+]
+
 tags = {
   Owner = "Guilhermeferreir"
 }

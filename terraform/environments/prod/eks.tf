@@ -8,7 +8,9 @@ module "eks" {
   authentication_mode                      = "API_AND_CONFIG_MAP"
   endpoint_public_access                   = var.endpoint_public_access
   endpoint_public_access_cidrs             = var.public_access_cidrs
-  enable_cluster_creator_admin_permissions = true
+  enable_cluster_creator_admin_permissions = false
+  access_entries                           = local.cluster_admin_access_entries
+  kms_key_administrators                   = var.cluster_admin_principal_arns
 
   addons = {
     coredns = {}

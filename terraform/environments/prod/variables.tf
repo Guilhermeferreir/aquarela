@@ -117,6 +117,12 @@ variable "node_group_disk_size" {
   default     = 50
 }
 
+variable "cluster_admin_principal_arns" {
+  description = "Stable EKS admin principals managed explicitly through access entries."
+  type        = list(string)
+  default     = []
+}
+
 variable "tags" {
   description = "Extra tags applied to the infrastructure."
   type        = map(string)
