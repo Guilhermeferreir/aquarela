@@ -24,10 +24,10 @@ spec:
         alertmanager:
           config:
             global:
-              smtp_smarthost: smtp.example.com:587
-              smtp_from: noreply@example.com
-              smtp_auth_username: change-me
-              smtp_auth_password: change-me
+              smtp_smarthost: smtp.gmail.com:587
+              smtp_from: guilhermeferreirskt@gmail.com
+              smtp_auth_username: guilhermeferreirskt@gmail.com
+              smtp_auth_password: change-me-with-gmail-app-password
               smtp_require_tls: true
             route:
               receiver: team-mail
@@ -38,7 +38,7 @@ spec:
             receivers:
               - name: team-mail
                 email_configs:
-                  - to: platform@example.com
+                  - to: guilhermeferreirskt@gmail.com
                     send_resolved: true
               - name: "null"
         prometheus:
@@ -60,6 +60,8 @@ spec:
       - CreateNamespace=true
       - Replace=true
       - SkipDryRunOnMissingResource=true
+
+
 
 
 
