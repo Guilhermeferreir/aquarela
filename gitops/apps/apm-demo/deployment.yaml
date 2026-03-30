@@ -1,4 +1,4 @@
-﻿apiVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: apm-demo
@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: apm-demo
-          image: ghcr.io/Guilhermeferreir/aquarela-apm-demo:latest
+          image: ghcr.io/guilhermeferreir/aquarela-apm-demo:latest
           ports:
             - name: http
               containerPort: 3000

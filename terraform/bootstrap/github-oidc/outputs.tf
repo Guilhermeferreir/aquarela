@@ -1,4 +1,4 @@
-﻿output "github_oidc_provider_arn" {
+output "github_oidc_provider_arn" {
   description = "OIDC provider ARN that trusts token.actions.githubusercontent.com."
   value       = aws_iam_openid_connect_provider.github.arn
 }

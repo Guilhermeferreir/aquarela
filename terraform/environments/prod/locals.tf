@@ -1,4 +1,4 @@
-﻿locals {
+locals {
   name         = "${var.project_name}-${var.environment}"
   cluster_name = "${local.name}-eks"
   azs          = slice(data.aws_availability_zones.available.names, 0, var.azs_count)
@@ -32,7 +32,7 @@
   control_plane_subnet_ids = var.use_existing_vpc ? (
     length(var.existing_control_plane_subnet_name_tags) > 0 ? [
       for subnet_name in var.existing_control_plane_subnet_name_tags : data.aws_subnet.existing_control_plane[subnet_name].id
-    ] : [
+      ] : [
       for subnet_name in var.existing_private_subnet_name_tags : data.aws_subnet.existing_private[subnet_name].id
     ]
   ) : module.vpc[0].intra_subnets

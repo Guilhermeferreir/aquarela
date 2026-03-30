@@ -1,4 +1,4 @@
-﻿data "aws_iam_user" "existing_desafio_aquarela" {
+data "aws_iam_user" "existing_desafio_aquarela" {
   count = var.use_existing_desafio_aquarela_user ? 1 : 0
 
   user_name = var.existing_desafio_aquarela_user_name

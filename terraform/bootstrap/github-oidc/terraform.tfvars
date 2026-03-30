@@ -1,4 +1,4 @@
-﻿region        = "us-east-1"
+region        = "us-east-1"
 github_owner  = "Guilhermeferreir"
 github_repo   = "aquarela"
 github_branch = "main"

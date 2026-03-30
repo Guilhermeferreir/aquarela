@@ -1,4 +1,4 @@
-﻿variable "region" {
+variable "region" {
   description = "AWS region used to create the GitHub OIDC provider and CI role."
   type        = string
 }

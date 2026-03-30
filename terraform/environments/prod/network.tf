@@ -1,4 +1,4 @@
-﻿module "vpc" {
+module "vpc" {
   count   = var.use_existing_vpc ? 0 : 1
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 6.0"
