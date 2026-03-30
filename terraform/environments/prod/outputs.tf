@@ -21,7 +21,7 @@ output "region" {
 
 output "desafio_aquarela_user_arn" {
   description = "IAM user ARN mapped into the aws-auth ConfigMap."
-  value       = aws_iam_user.desafio_aquarela.arn
+  value       = var.use_existing_desafio_aquarela_user ? data.aws_iam_user.existing_desafio_aquarela[0].arn : aws_iam_user.desafio_aquarela[0].arn
 }
 
 output "update_kubeconfig_command" {

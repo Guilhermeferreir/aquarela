@@ -5,9 +5,9 @@
   name               = local.cluster_name
   kubernetes_version = var.kubernetes_version
 
-  authentication_mode                   = "API_AND_CONFIG_MAP"
-  endpoint_public_access                = var.endpoint_public_access
-  endpoint_public_access_cidrs          = var.public_access_cidrs
+  authentication_mode                      = "API_AND_CONFIG_MAP"
+  endpoint_public_access                   = var.endpoint_public_access
+  endpoint_public_access_cidrs             = var.public_access_cidrs
   enable_cluster_creator_admin_permissions = true
 
   addons = {
@@ -21,9 +21,9 @@
     }
   }
 
-  vpc_id                   = module.vpc.vpc_id
-  subnet_ids               = module.vpc.private_subnets
-  control_plane_subnet_ids = module.vpc.intra_subnets
+  vpc_id                   = local.vpc_id
+  subnet_ids               = local.private_subnet_ids
+  control_plane_subnet_ids = local.control_plane_subnet_ids
 
   eks_managed_node_groups = {
     default = {

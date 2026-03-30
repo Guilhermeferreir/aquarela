@@ -27,6 +27,48 @@ variable "azs_count" {
   default     = 3
 }
 
+variable "use_existing_vpc" {
+  description = "Reuse an existing VPC and subnets instead of creating a new dedicated VPC."
+  type        = bool
+  default     = false
+}
+
+variable "existing_vpc_id" {
+  description = "Existing VPC ID used when use_existing_vpc is true."
+  type        = string
+  default     = null
+}
+
+variable "existing_public_subnet_name_tags" {
+  description = "Name tags of existing public subnets used for public load balancers."
+  type        = list(string)
+  default     = []
+}
+
+variable "existing_private_subnet_name_tags" {
+  description = "Name tags of existing private subnets used by the worker nodes."
+  type        = list(string)
+  default     = []
+}
+
+variable "existing_control_plane_subnet_name_tags" {
+  description = "Optional name tags of existing subnets dedicated to the EKS control plane. Defaults to the private subnets when omitted."
+  type        = list(string)
+  default     = []
+}
+
+variable "use_existing_desafio_aquarela_user" {
+  description = "Reuse an existing IAM user named desafio_aquarela instead of creating a new one."
+  type        = bool
+  default     = false
+}
+
+variable "existing_desafio_aquarela_user_name" {
+  description = "Existing IAM user name used when use_existing_desafio_aquarela_user is true."
+  type        = string
+  default     = null
+}
+
 variable "vpc_cidr" {
   description = "CIDR block used by the dedicated VPC."
   type        = string

@@ -1,4 +1,5 @@
 ﻿module "vpc" {
+  count   = var.use_existing_vpc ? 0 : 1
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 6.0"
 
@@ -25,4 +26,70 @@
   }
 
   tags = local.network_tags
+}
+
+data "aws_subnet" "existing_public" {
+  for_each = var.use_existing_vpc ? toset(var.existing_public_subnet_name_tags) : toset([])
+
+  filter {
+    name   = "vpc-id"
+    values = [var.existing_vpc_id]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = [each.value]
+  }
+}
+
+data "aws_subnet" "existing_private" {
+  for_each = var.use_existing_vpc ? toset(var.existing_private_subnet_name_tags) : toset([])
+
+  filter {
+    name   = "vpc-id"
+    values = [var.existing_vpc_id]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = [each.value]
+  }
+}
+
+data "aws_subnet" "existing_control_plane" {
+  for_each = var.use_existing_vpc ? toset(var.existing_control_plane_subnet_name_tags) : toset([])
+
+  filter {
+    name   = "vpc-id"
+    values = [var.existing_vpc_id]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = [each.value]
+  }
+}
+
+resource "aws_ec2_tag" "existing_subnet_cluster_tag" {
+  for_each = var.use_existing_vpc ? toset(local.discovery_subnet_ids) : toset([])
+
+  resource_id = each.value
+  key         = "kubernetes.io/cluster/${local.cluster_name}"
+  value       = "shared"
+}
+
+resource "aws_ec2_tag" "existing_public_subnet_elb_tag" {
+  for_each = var.use_existing_vpc ? toset(local.public_subnet_ids) : toset([])
+
+  resource_id = each.value
+  key         = "kubernetes.io/role/elb"
+  value       = "1"
+}
+
+resource "aws_ec2_tag" "existing_private_subnet_internal_elb_tag" {
+  for_each = var.use_existing_vpc ? toset(local.private_subnet_ids) : toset([])
+
+  resource_id = each.value
+  key         = "kubernetes.io/role/internal-elb"
+  value       = "1"
 }
