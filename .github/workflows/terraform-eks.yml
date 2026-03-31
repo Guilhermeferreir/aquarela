@@ -120,6 +120,12 @@ jobs:
       - name: Apply aws-auth configmap
         run: kubectl apply -f /tmp/aws-auth-configmap.yaml
 
+      - name: Apply Alertmanager SMTP secret
+        if: ${{ secrets.ALERTMANAGER_SMTP_AUTH_PASSWORD != '' }}
+        env:
+          ALERTMANAGER_SMTP_AUTH_PASSWORD: ${{ secrets.ALERTMANAGER_SMTP_AUTH_PASSWORD }}
+        run: ./scripts/apply-alertmanager-smtp-secret.sh
+
       - name: Install Argo CD and register root application
         env:
           REPO_URL: ${{ vars.ARGOCD_REPO_URL }}

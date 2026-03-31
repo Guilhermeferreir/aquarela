@@ -1,4 +1,4 @@
-﻿apiVersion: argoproj.io/v1alpha1
+apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: monitoring-stack
@@ -25,9 +25,9 @@ spec:
           config:
             global:
               smtp_smarthost: smtp.gmail.com:587
-              smtp_from: guilhermeferreirskt@gmail.com
-              smtp_auth_username: guilhermeferreirskt@gmail.com
-              smtp_auth_password: change-me-with-gmail-app-password
+              smtp_from: guixerosk62@gmail.com
+              smtp_auth_username: guixerosk62@gmail.com
+              smtp_auth_password_file: /etc/alertmanager/secrets/aquarela-alertmanager-smtp/smtp_auth_password
               smtp_require_tls: true
             route:
               receiver: team-mail
@@ -40,7 +40,14 @@ spec:
                 email_configs:
                   - to: guilhermeferreirskt@gmail.com
                     send_resolved: true
-              - name: "null"
+              - name: 'null'
+            routes:
+              - receiver: 'null'
+                matchers:
+                  - alertname = "Watchdog"
+          alertmanagerSpec:
+            secrets:
+              - aquarela-alertmanager-smtp
         prometheus:
           prometheusSpec:
             serviceMonitorSelector: {}
@@ -60,8 +67,4 @@ spec:
       - CreateNamespace=true
       - Replace=true
       - SkipDryRunOnMissingResource=true
-
-
-
-
 
