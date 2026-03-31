@@ -1,4 +1,4 @@
-﻿apiVersion: apm.k8s.elastic.co/v1
+apiVersion: apm.k8s.elastic.co/v1
 kind: ApmServer
 metadata:
   name: apm-server
@@ -15,6 +15,8 @@ spec:
         disabled: true
   config:
     apm-server.auth.anonymous.enabled: true
+    apm-server.auth.anonymous.allow_agent: ["nodejs"]
+    apm-server.auth.anonymous.allow_service: ["aquarela-apm-demo"]
     apm-server.rum.enabled: true
     apm-server.host: 0.0.0.0:8200
   podTemplate:
@@ -28,3 +30,4 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+
